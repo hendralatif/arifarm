@@ -17,23 +17,27 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Seed Users (Admin & Customer)
-        User::create([
-            'name' => 'Admin Ari Farm',
-            'email' => 'admin@arifarm.com',
-            'email_verified_at' => now(),
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-            'remember_token' => Str::random(10),
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@arifarm.com'],
+            [
+                'name' => 'Admin Ari Farm',
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+                'remember_token' => Str::random(10),
+            ]
+        );
 
-        User::create([
-            'name' => 'Budi Prasetyo',
-            'email' => 'user@arifarm.com',
-            'email_verified_at' => now(),
-            'password' => Hash::make('password'),
-            'role' => 'user',
-            'remember_token' => Str::random(10),
-        ]);
+        User::firstOrCreate(
+            ['email' => 'user@arifarm.com'],
+            [
+                'name' => 'Budi Prasetyo',
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'),
+                'role' => 'user',
+                'remember_token' => Str::random(10),
+            ]
+        );
 
         // 2. Seed Categories
         $categories = [
@@ -71,7 +75,10 @@ class DatabaseSeeder extends Seeder
 
         $createdCategories = [];
         foreach ($categories as $cat) {
-            $createdCategories[$cat['slug']] = Category::create($cat);
+            $createdCategories[$cat['slug']] = Category::firstOrCreate(
+                ['slug' => $cat['slug']],
+                $cat
+            );
         }
 
         // 3. Seed Goats (Products)
@@ -191,28 +198,33 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($goats as $g) {
-            $goat = Goat::create($g);
-            
-            // Seed 3 weighings for each goat (e.g. 2 months ago, 1 month ago, and current weight)
-            $currentWeight = (float)$g['weight_kg'];
-            \App\Models\GoatWeighing::create([
-                'goat_id' => $goat->id,
-                'weight_kg' => $currentWeight - 6.5,
-                'weighed_at' => now()->subMonths(2),
-                'notes' => 'Penimbangan rutin bulanan, kondisi sehat bugar.'
-            ]);
-            \App\Models\GoatWeighing::create([
-                'goat_id' => $goat->id,
-                'weight_kg' => $currentWeight - 3.2,
-                'weighed_at' => now()->subMonth(),
-                'notes' => 'Nafsu makan tinggi, kenaikan berat stabil.'
-            ]);
-            \App\Models\GoatWeighing::create([
-                'goat_id' => $goat->id,
-                'weight_kg' => $currentWeight,
-                'weighed_at' => now(),
-                'notes' => 'Berat badan terbaru sebelum dipasarkan.'
-            ]);
+            $goat = Goat::firstOrCreate(
+                ['slug' => $g['slug']],
+                $g
+            );
+
+            // Seed weighings hanya jika goat baru dibuat
+            if ($goat->wasRecentlyCreated) {
+                $currentWeight = (float)$g['weight_kg'];
+                \App\Models\GoatWeighing::create([
+                    'goat_id' => $goat->id,
+                    'weight_kg' => $currentWeight - 6.5,
+                    'weighed_at' => now()->subMonths(2),
+                    'notes' => 'Penimbangan rutin bulanan, kondisi sehat bugar.'
+                ]);
+                \App\Models\GoatWeighing::create([
+                    'goat_id' => $goat->id,
+                    'weight_kg' => $currentWeight - 3.2,
+                    'weighed_at' => now()->subMonth(),
+                    'notes' => 'Nafsu makan tinggi, kenaikan berat stabil.'
+                ]);
+                \App\Models\GoatWeighing::create([
+                    'goat_id' => $goat->id,
+                    'weight_kg' => $currentWeight,
+                    'weighed_at' => now(),
+                    'notes' => 'Berat badan terbaru sebelum dipasarkan.'
+                ]);
+            }
         }
     }
 }
