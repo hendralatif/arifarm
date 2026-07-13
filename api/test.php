@@ -8,7 +8,10 @@ echo "getenv('VERCEL') = '" . getenv('VERCEL') . "'<br>";
 
 echo "<h3>Raw config/database.php values:</h3>";
 try {
-    // Mock the env() helper since Laravel isn't loaded
+    // Load composer autoloader to resolve Laravel classes (like Str)
+    require __DIR__ . '/../vendor/autoload.php';
+
+    // Mock the env() helper since Laravel application isn't booted
     if (!function_exists('env')) {
         function env($key, $default = null) {
             $val = getenv($key);
