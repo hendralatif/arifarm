@@ -6,7 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 
 // On Vercel serverless, /var/task/user/storage is READ-ONLY.
-// We MUST use /tmp for all writable storage.
+// We MUST use /tmp for all writable storage and cache.
 // Detect if running on Vercel (or any read-only serverless environment)
 $isServerless = !is_writable(dirname(__DIR__) . '/storage/logs');
 $storagePath = $isServerless
@@ -21,9 +21,16 @@ if ($isServerless) {
         'framework/views',
         'framework/cache/data',
         'app/public',
+        'bootstrap/cache',
     ] as $dir) {
         @mkdir($storagePath . '/' . $dir, 0775, true);
     }
+    
+    // Set environment variables to move package & services cache to /tmp
+    putenv('APP_SERVICES_CACHE=' . $storagePath . '/bootstrap/cache/services.php');
+    putenv('APP_PACKAGES_CACHE=' . $storagePath . '/bootstrap/cache/packages.php');
+    $_ENV['APP_SERVICES_CACHE'] = $storagePath . '/bootstrap/cache/services.php';
+    $_ENV['APP_PACKAGES_CACHE'] = $storagePath . '/bootstrap/cache/packages.php';
 }
 
 $app = Application::configure(basePath: dirname(__DIR__))
