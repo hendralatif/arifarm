@@ -41,9 +41,19 @@ $app = Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*'),
-        );
+        // Use Symfony Response directly to avoid depending on 'view' service
+        // This ensures errors are visible even if ViewServiceProvider hasn't booted
+        $exceptions->render(function (\Throwable $e, $request) {
+            $content = '<pre style="background:#111;color:#f88;padding:20px;font-family:monospace;white-space:pre-wrap;">';
+            $content .= '<b>ORIGINAL ERROR: ' . get_class($e) . '</b>' . "\n\n";
+            $content .= htmlspecialchars($e->getMessage()) . "\n\n";
+            $content .= 'File: ' . $e->getFile() . ':' . $e->getLine() . "\n\n";
+            $content .= 'Trace:' . "\n" . htmlspecialchars($e->getTraceAsString());
+            $content .= '</pre>';
+            return new \Symfony\Component\HttpFoundation\Response(
+                $content, 500, ['Content-Type' => 'text/html; charset=utf-8']
+            );
+        });
     })->create();
 
 // Apply the writable storage path BEFORE handleRequest is called
