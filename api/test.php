@@ -1,15 +1,29 @@
 <?php
-// Dump all $_SERVER and $_ENV keys to see what matches Vercel
-echo "<h2>All Server & Env Keys</h2>";
+// PHP Diagnostic tool
+echo "<h2>Ari Farm - PHP Diagnostic</h2>";
+echo "<p>PHP Version: " . PHP_VERSION . "</p>";
 
-echo "<h3>$_SERVER keys:</h3><ul>";
-foreach (array_keys($_SERVER) as $k) {
-    echo "<li>$k = " . (str_contains($k, 'KEY') || str_contains($k, 'PASS') ? '***' : $_SERVER[$k]) . "</li>";
-}
-echo "</ul>";
+echo "<h3>Vercel environment check:</h3>";
+echo "getenv('VERCEL') = '" . getenv('VERCEL') . "'<br>";
 
-echo "<h3>getenv() keys:</h3><ul>";
-foreach (array_keys(getenv()) as $k) {
-    echo "<li>$k = " . (str_contains($k, 'KEY') || str_contains($k, 'PASS') ? '***' : getenv($k)) . "</li>";
+echo "<h3>Raw config/database.php values:</h3>";
+try {
+    // Mock the env() helper since Laravel isn't loaded
+    if (!function_exists('env')) {
+        function env($key, $default = null) {
+            $val = getenv($key);
+            return $val !== false ? $val : $default;
+        }
+    }
+    
+    $dbConfig = include __DIR__ . '/../config/database.php';
+    echo "<pre>";
+    // Hide password for safety
+    if (isset($dbConfig['connections']['mysql']['password'])) {
+        $dbConfig['connections']['mysql']['password'] = '***hidden***';
+    }
+    print_r($dbConfig['connections']['mysql']);
+    echo "</pre>";
+} catch (\Throwable $e) {
+    echo "<p style='color:red;'>Failed to load database config: " . $e->getMessage() . "</p>";
 }
-echo "</ul>";
