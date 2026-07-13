@@ -10,6 +10,7 @@ class HomeController extends Controller
 {
     public function index()
     {
+        dd(config('database.connections.mysql'));
         $categories = Category::withCount('goats')->get();
         
         $featuredGoats = Goat::with('category')
