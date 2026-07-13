@@ -40,6 +40,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust Vercel's proxy so HTTPS URLs are generated correctly
+        $middleware->trustProxies(at: '*');
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
