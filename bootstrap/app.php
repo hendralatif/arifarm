@@ -5,10 +5,28 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 
-// On Vercel serverless, use /tmp for writable storage
-$storagePath = getenv('VERCEL_STORAGE_PATH') ?: dirname(__DIR__) . '/storage';
+// On Vercel serverless, /var/task/user/storage is READ-ONLY.
+// We MUST use /tmp for all writable storage.
+// Detect if running on Vercel (or any read-only serverless environment)
+$isServerless = !is_writable(dirname(__DIR__) . '/storage/logs');
+$storagePath = $isServerless
+    ? '/tmp/laravel-storage'
+    : dirname(__DIR__) . '/storage';
 
-return Application::configure(basePath: dirname(__DIR__))
+// Pre-create all required directories in /tmp
+if ($isServerless) {
+    foreach ([
+        'logs',
+        'framework/sessions',
+        'framework/views',
+        'framework/cache/data',
+        'app/public',
+    ] as $dir) {
+        @mkdir($storagePath . '/' . $dir, 0775, true);
+    }
+}
+
+$app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
@@ -26,5 +44,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
-    })->create()
-    ->useStoragePath($storagePath);
+    })->create();
+
+// Apply the writable storage path BEFORE handleRequest is called
+$app->useStoragePath($storagePath);
+
+return $app;
