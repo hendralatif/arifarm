@@ -28,16 +28,6 @@
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         },
-        "classmap": [
-            "ApiRequestor.php",
-            "Config.php",
-            "CoreApi.php",
-            "Notification.php",
-            "Sanitizer.php",
-            "Snap.php",
-            "SnapApiRequestor.php",
-            "Transaction.php"
-        ]
     },
     "autoload-dev": {
         "psr-4": {
