@@ -1,33 +1,31 @@
 {
     "version": 2,
-    "framework": null,
-    "outputDirectory": "public",
-    "functions": {
-        "api/index.php": {
-            "runtime": "vercel-php@0.8.0"
+    "builds": [
+        {
+            "src": "api/index.php",
+            "use": "vercel-php@0.8.0"
         }
-    },
-    "build": {
-        "env": {
-            "COMPOSER_PROVIDES": "ext-mysql"
-        }
-    },
+    ],
     "routes": [
         {
+            "src": "/build/assets/(.*)",
+            "dest": "/public/build/assets/$1"
+        },
+        {
             "src": "/build/(.*)",
-            "dest": "/build/$1"
+            "dest": "/public/build/$1"
         },
         {
             "src": "/uploads/(.*)",
-            "dest": "/uploads/$1"
+            "dest": "/public/uploads/$1"
         },
         {
             "src": "/favicon.ico",
-            "dest": "/favicon.ico"
+            "dest": "/public/favicon.ico"
         },
         {
             "src": "/robots.txt",
-            "dest": "/robots.txt"
+            "dest": "/public/robots.txt"
         },
         {
             "src": "/(.*)",
