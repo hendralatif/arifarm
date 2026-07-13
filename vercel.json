@@ -4,9 +4,17 @@
         {
             "src": "api/index.php",
             "use": "vercel-php@0.8.0"
+        },
+        {
+            "src": "api/test.php",
+            "use": "vercel-php@0.8.0"
         }
     ],
     "routes": [
+        {
+            "src": "/test",
+            "dest": "/api/test.php"
+        },
         {
             "src": "/build/assets/(.*)",
             "dest": "/public/build/assets/$1"
