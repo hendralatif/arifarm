@@ -16,6 +16,13 @@ try {
         }
     }
     
+    // Mock database_path() helper
+    if (!function_exists('database_path')) {
+        function database_path($path = '') {
+            return '/dummy/database/' . $path;
+        }
+    }
+    
     $dbConfig = include __DIR__ . '/../config/database.php';
     echo "<pre>";
     // Hide password for safety
