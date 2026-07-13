@@ -25,6 +25,25 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/catalog', [GoatController::class, 'index'])->name('catalog');
 Route::get('/catalog/{slug}', [GoatController::class, 'show'])->name('catalog.show');
 
+// Dynamic remote migration runner
+Route::get('/run-migrations', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate:fresh', [
+            '--seed' => true,
+            '--force' => true,
+        ]);
+        return '<pre style="background:#111;color:#5f5;padding:20px;">' 
+            . "Migrations & Seeding successfully executed!\n\n" 
+            . \Illuminate\Support\Facades\Artisan::output() 
+            . '</pre>';
+    } catch (\Throwable $e) {
+        return '<pre style="background:#111;color:#f55;padding:20px;">' 
+            . "Migration/Seeding failed: " . $e->getMessage() . "\n\n" 
+            . $e->getTraceAsString() 
+            . '</pre>';
+    }
+});
+
 // Shopping Cart Routes (Session based, public)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/add/{id}', [CartController::class, 'add'])->name('cart.add');
